@@ -1,0 +1,35 @@
+Fix the use of "ExaAccel" "true" in /etc/X11/xorg.conf
+
+This patch is to be applied to the xserver-xorg-video-dove version 0.3.4 (source 0.1.0).
+
+As some programs (as iceweasel) may crash, the X server compilation must be done with:
+
+	MRVL_EXA_XBGR_SUPPORT=0
+
+(see build_no_dpkg_env.sh - the crash occurs in mrvl_exa_driver.c:1067)
+
+
+--- xserver-xorg-video-dove-0.1.0/src/dovefb_xv.c.orig
++++ xserver-xorg-video-dove-0.1.0/src/dovefb_xv.c
+@@ -2957,6 +2957,12 @@
+ 
+     if (pDev->UseGPU && pDev->UseExa && pDev->exaMode == 2)
+     {
++//jfm
++	if (!CreateScratchPixmapsForScreen(pScrn->scrnIndex)) {
++		xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
++			 "CreateScratchPixmapsForScreen failed\n");
++		return FALSE;
++	}
+         pDev->pFilterPix = pScreen->CreatePixmap(pScreen, 2048, 2048, 16, 0);
+ 
+         if (pDev->pFilterPix == NULL)
+@@ -3058,6 +3064,8 @@
+     if (pDev->UseGPU && pDev->UseExa && pDev->exaMode == 2)
+     {
+         pScreen->DestroyPixmap(pDev->pFilterPix);
++//jfm
++	FreeScratchPixmapsForScreen(pScrn->scrnIndex);
+     }
+     else if (pDev->UseGPU)
+     {
